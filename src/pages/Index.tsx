@@ -33,7 +33,7 @@ const Index = () => {
       
       <div className="container mx-auto px-6 py-8">
         {/* Progress Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           <ProgressCard
             title="Total Progress"
             completed={totalProgress.completedProblems}
@@ -60,30 +60,42 @@ const Index = () => {
           />
         </div>
 
-        {/* Course Steps */}
-        <div className="space-y-6">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-foreground mb-2">Course Curriculum</h2>
-            <p className="text-muted-foreground">
-              Complete all {totalProgress.totalProblems} problems across {course.length} comprehensive steps
+        {/* Learning Path */}
+        <div className="space-y-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-foreground mb-4">Learning Path</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Complete all {totalProgress.totalProblems} problems across {course.length} comprehensive chapters. 
+              Each chapter builds upon the previous one to give you a solid foundation.
             </p>
           </div>
           
-          {course.map((step) => (
-            <StepCard
-              key={step.id}
-              step={step}
-              onToggleProblem={toggleProblemStatus}
-            />
-          ))}
+          <div className="grid gap-6">
+            {course.map((step, index) => (
+              <div key={step.id} className="relative">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-lg">
+                    {index + 1}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-foreground">Chapter {index + 1}</h3>
+                  </div>
+                </div>
+                <StepCard
+                  step={step}
+                  onToggleProblem={toggleProblemStatus}
+                />
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Motivational Footer */}
-        <div className="mt-16 text-center p-8 bg-gradient-accent rounded-lg">
-          <h3 className="text-2xl font-bold text-accent-foreground mb-4">
+        <div className="mt-20 text-center p-8 bg-gradient-accent rounded-xl shadow-xl">
+          <h3 className="text-3xl font-bold text-accent-foreground mb-4">
             Keep Going! 🚀
           </h3>
-          <p className="text-accent-foreground/90 max-w-2xl mx-auto">
+          <p className="text-accent-foreground/90 max-w-2xl mx-auto text-lg">
             Every problem you solve brings you one step closer to mastering DSA. 
             Consistency is key - dedicate time daily and watch your skills grow exponentially!
           </p>

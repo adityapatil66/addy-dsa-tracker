@@ -14,12 +14,12 @@ export const Header = ({ totalProgress, onResetProgress }: HeaderProps) => {
         <div className="text-center space-y-6">
           <div className="flex items-center justify-center gap-3">
             <Target className="h-8 w-8" />
-            <h1 className="text-4xl font-bold">Striver's A2Z DSA Course</h1>
+            <h1 className="text-4xl font-bold">DSA Learning Kit For All</h1>
           </div>
           
           <p className="text-lg text-primary-foreground/90 max-w-3xl mx-auto">
-            Master Data Structures and Algorithms from A to Z with this comprehensive, 
-            well-structured course. Track your progress and build your coding foundation step by step.
+            Master Data Structures and Algorithms with our comprehensive learning kit. 
+            Track your progress and build your coding foundation step by step.
           </p>
           
           <div className="bg-black/20 rounded-lg p-6 max-w-md mx-auto">

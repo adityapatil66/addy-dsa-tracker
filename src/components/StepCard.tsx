@@ -16,9 +16,9 @@ export const StepCard = ({ step, onToggleProblem }: StepCardProps) => {
   const percentage = step.totalProblems > 0 ? Math.round((step.completedProblems / step.totalProblems) * 100) : 0;
 
   return (
-    <Card className="bg-card border-border overflow-hidden">
+    <Card className="bg-card border-border overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl">
       <div 
-        className="p-6 cursor-pointer hover:bg-muted/50 transition-colors"
+        className="p-6 cursor-pointer hover:bg-gradient-to-r hover:from-muted/30 hover:to-muted/50 transition-all duration-300"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center justify-between">
