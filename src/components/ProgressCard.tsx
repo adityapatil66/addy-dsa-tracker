@@ -6,9 +6,10 @@ interface ProgressCardProps {
   completed: number;
   total: number;
   variant?: 'easy' | 'medium' | 'hard' | 'total';
+  showAsPercentage?: boolean;
 }
 
-export const ProgressCard = ({ title, completed, total, variant = 'total' }: ProgressCardProps) => {
+export const ProgressCard = ({ title, completed, total, variant = 'total', showAsPercentage = false }: ProgressCardProps) => {
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   const getProgressColor = () => {
@@ -43,7 +44,7 @@ export const ProgressCard = ({ title, completed, total, variant = 'total' }: Pro
         <h3 className="text-lg font-semibold text-foreground">{title}</h3>
         <div className="space-y-3">
           <div className={`text-3xl font-bold ${getTextColor()}`}>
-            {completed} / {total}
+            {showAsPercentage ? `${completed}%` : `${completed} / ${total}`}
           </div>
           <Progress 
             value={percentage} 
