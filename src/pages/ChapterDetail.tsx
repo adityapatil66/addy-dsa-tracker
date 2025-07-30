@@ -3,13 +3,24 @@ import { useDSAProgress } from "@/hooks/useDSAProgress";
 import { LectureCard } from "@/components/LectureCard";
 import { ProgressCard } from "@/components/ProgressCard";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { AdminControls } from "@/components/AdminControls";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Home, BookOpen } from "lucide-react";
+import { ArrowLeft, Home, BookOpen, User, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 
 const ChapterDetail = () => {
   const { chapterId } = useParams();
   const navigate = useNavigate();
+  const { user, signOut, isAdmin, loading } = useAuth();
   const { course, toggleProblemStatus } = useDSAProgress();
+
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
 
   const chapter = course.find(c => c.id === chapterId);
 
@@ -29,6 +40,22 @@ const ChapterDetail = () => {
 
   const chapterIndex = course.findIndex(c => c.id === chapterId);
   const percentage = chapter.totalProblems > 0 ? Math.round((chapter.completedProblems / chapter.totalProblems) * 100) : 0;
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -59,6 +86,12 @@ const ChapterDetail = () => {
             </div>
             
             <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full">
+                <User className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-primary">
+                  {user?.email} {isAdmin && '(Admin)'}
+                </span>
+              </div>
               <ThemeToggle />
               <Button
                 variant="outline"
@@ -68,6 +101,15 @@ const ChapterDetail = () => {
               >
                 <Home className="w-4 h-4 mr-2" />
                 All Chapters
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSignOut}
+                className="border-destructive/20 text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
               </Button>
             </div>
           </div>
@@ -107,6 +149,16 @@ const ChapterDetail = () => {
             {chapter.description}
           </p>
         </div>
+
+        {/* Admin Controls */}
+        {isAdmin && (
+          <div className="mb-8">
+            <AdminControls 
+              chapterId={chapterId} 
+              onUpdate={() => window.location.reload()} 
+            />
+          </div>
+        )}
 
         {/* Lectures */}
         <div className="space-y-6">

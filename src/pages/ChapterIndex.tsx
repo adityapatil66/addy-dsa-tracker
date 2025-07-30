@@ -2,19 +2,30 @@ import { useDSAProgress } from "@/hooks/useDSAProgress";
 import { ChapterCard } from "@/components/ChapterCard";
 import { ProgressCard } from "@/components/ProgressCard";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { AdminControls } from "@/components/AdminControls";
 import { Button } from "@/components/ui/button";
-import { RotateCcw, BookOpen } from "lucide-react";
+import { RotateCcw, BookOpen, LogOut, User } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 
 const ChapterIndex = () => {
   const navigate = useNavigate();
+  const { user, signOut, isAdmin, loading } = useAuth();
   const { 
     course, 
     getTotalProgress, 
     getDifficultyProgress, 
     resetProgress 
   } = useDSAProgress();
+
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
 
   const totalProgress = getTotalProgress();
   const difficultyProgress = getDifficultyProgress();
@@ -30,6 +41,22 @@ const ChapterIndex = () => {
   const handleChapterClick = (chapterId: string) => {
     navigate(`/chapter/${chapterId}`);
   };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -48,6 +75,12 @@ const ChapterIndex = () => {
             </div>
             
             <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full">
+                <User className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-primary">
+                  {user?.email} {isAdmin && '(Admin)'}
+                </span>
+              </div>
               <ThemeToggle />
               <Button
                 variant="outline"
@@ -57,6 +90,15 @@ const ChapterIndex = () => {
               >
                 <RotateCcw className="w-4 h-4 mr-2" />
                 Reset Progress
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSignOut}
+                className="border-destructive/20 text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
               </Button>
             </div>
           </div>
@@ -100,6 +142,13 @@ const ChapterIndex = () => {
             Each chapter contains carefully curated problems to build your expertise step by step.
           </p>
         </div>
+
+        {/* Admin Controls */}
+        {isAdmin && (
+          <div className="mb-8">
+            <AdminControls onUpdate={() => window.location.reload()} />
+          </div>
+        )}
 
         {/* Chapters Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
