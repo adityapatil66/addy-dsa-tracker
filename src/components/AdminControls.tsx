@@ -6,8 +6,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Link, FileText, Video, Code } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Edit, Trash2, Link, FileText, Video, Code, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import UserManagement from './UserManagement';
 
 interface AdminControlsProps {
   chapterId?: string;
@@ -203,101 +205,116 @@ export const AdminControls = ({ chapterId, lectureId, onUpdate }: AdminControlsP
   };
 
   return (
-    <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-primary">
-          <Edit className="h-5 w-5" />
-          Admin Controls
-        </CardTitle>
-        <CardDescription>
-          Add or edit content for this section
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 gap-2">
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setFormType('chapter')}
-                className="justify-start"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Chapter
-              </Button>
-            </DialogTrigger>
+    <div className="space-y-6">
+      <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-primary">
+            <Edit className="h-5 w-5" />
+            Admin Controls
+          </CardTitle>
+          <CardDescription>
+            Manage content and users
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="content" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="content">Content Management</TabsTrigger>
+              <TabsTrigger value="users">User Management</TabsTrigger>
+            </TabsList>
             
-            <DialogTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setFormType('lecture')}
-                className="justify-start"
-                disabled={!chapterId}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Lecture
-              </Button>
-            </DialogTrigger>
-            
-            <DialogTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setFormType('problem')}
-                className="justify-start"
-                disabled={!lectureId}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Problem
-              </Button>
-            </DialogTrigger>
-            
-            <DialogTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setFormType('link')}
-                className="justify-start"
-                disabled={!lectureId}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Link
-              </Button>
-            </DialogTrigger>
+            <TabsContent value="content" className="mt-4">
+              <div className="grid grid-cols-2 gap-2">
+                <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setFormType('chapter')}
+                      className="justify-start"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Chapter
+                    </Button>
+                  </DialogTrigger>
+                  
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setFormType('lecture')}
+                      className="justify-start"
+                      disabled={!chapterId}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Lecture
+                    </Button>
+                  </DialogTrigger>
+                  
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setFormType('problem')}
+                      className="justify-start"
+                      disabled={!lectureId}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Problem
+                    </Button>
+                  </DialogTrigger>
+                  
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setFormType('link')}
+                      className="justify-start"
+                      disabled={!lectureId}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Link
+                    </Button>
+                  </DialogTrigger>
 
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  {getIcon()}
-                  Add {formType.charAt(0).toUpperCase() + formType.slice(1)}
-                </DialogTitle>
-                <DialogDescription>
-                  Fill in the details below to add new {formType}.
-                </DialogDescription>
-              </DialogHeader>
-              
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {renderForm()}
-                
-                <div className="flex gap-2 pt-4">
-                  <Button type="submit" className="flex-1">
-                    Add {formType.charAt(0).toUpperCase() + formType.slice(1)}
-                  </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </CardContent>
-    </Card>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        {getIcon()}
+                        Add {formType.charAt(0).toUpperCase() + formType.slice(1)}
+                      </DialogTitle>
+                      <DialogDescription>
+                        Fill in the details below to add new {formType}.
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      {renderForm()}
+                      
+                      <div className="flex gap-2 pt-4">
+                        <Button type="submit" className="flex-1">
+                          Add {formType.charAt(0).toUpperCase() + formType.slice(1)}
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => setIsOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="users" className="mt-4">
+              <UserManagement />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
