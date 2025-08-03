@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Edit, Trash2, Link, FileText, Video, Code, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import UserManagement from './UserManagement';
 
 interface AdminControlsProps {
@@ -41,16 +42,76 @@ export const AdminControls = ({ chapterId, lectureId, onUpdate }: AdminControlsP
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // For now, just show success message
-    // In a real implementation, you would save to database
-    toast({
-      title: "Content updated",
-      description: `${formType} has been successfully ${formType === 'chapter' ? 'added' : 'updated'}.`,
-    });
-    
-    resetForm();
-    setIsOpen(false);
-    onUpdate?.();
+    try {
+      let result;
+      
+      switch (formType) {
+        case 'chapter':
+          result = await supabase
+            .from('chapters')
+            .insert({
+              title,
+              description,
+              created_by: (await supabase.auth.getUser()).data.user?.id
+            });
+          break;
+          
+        case 'lecture':
+          if (!chapterId) throw new Error('Chapter ID required');
+          result = await supabase
+            .from('lectures')
+            .insert({
+              chapter_id: chapterId,
+              title,
+              content,
+              created_by: (await supabase.auth.getUser()).data.user?.id
+            });
+          break;
+          
+        case 'problem':
+          if (!lectureId) throw new Error('Lecture ID required');
+          result = await supabase
+            .from('problems')
+            .insert({
+              lecture_id: lectureId,
+              title,
+              description,
+              difficulty,
+              created_by: (await supabase.auth.getUser()).data.user?.id
+            });
+          break;
+          
+        case 'link':
+          if (!lectureId) throw new Error('Lecture ID required');
+          result = await supabase
+            .from('links')
+            .insert({
+              lecture_id: lectureId,
+              title,
+              url: linkUrl,
+              link_type: linkType,
+              created_by: (await supabase.auth.getUser()).data.user?.id
+            });
+          break;
+      }
+      
+      if (result?.error) throw result.error;
+      
+      toast({
+        title: "Success",
+        description: `${formType.charAt(0).toUpperCase() + formType.slice(1)} has been successfully added.`,
+      });
+      
+      resetForm();
+      setIsOpen(false);
+      onUpdate?.();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save content",
+        variant: "destructive",
+      });
+    }
   };
 
   const renderForm = () => {
