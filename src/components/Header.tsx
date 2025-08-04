@@ -3,11 +3,12 @@ import { Progress } from "@/components/ui/progress";
 import { RotateCcw, Target } from "lucide-react";
 
 interface HeaderProps {
-  totalProgress: { totalProblems: number; completedProblems: number; percentage: number };
-  onResetProgress: () => void;
+  totalProgress?: { totalProblems: number; completedProblems: number; percentage: number };
+  onResetProgress?: () => void;
+  showUserInfo?: boolean;
 }
 
-export const Header = ({ totalProgress, onResetProgress }: HeaderProps) => {
+export const Header = ({ totalProgress, onResetProgress, showUserInfo = false }: HeaderProps) => {
   return (
     <div className="bg-gradient-primary text-primary-foreground">
       <div className="container mx-auto px-6 py-8">

@@ -22,6 +22,8 @@ export default {
 				'gradient-primary': 'var(--gradient-primary)',
 				'gradient-accent': 'var(--gradient-accent)',
 				'gradient-success': 'var(--gradient-success)',
+				'gradient-hero': 'var(--gradient-hero)',
+				'gradient-webdev': 'var(--gradient-webdev)',
 			},
 			boxShadow: {
 				'glow': 'var(--shadow-glow)',
@@ -77,6 +79,9 @@ export default {
 				'progress-easy': 'hsl(var(--progress-easy))',
 				'progress-medium': 'hsl(var(--progress-medium))',
 				'progress-hard': 'hsl(var(--progress-hard))',
+				'webdev-primary': 'hsl(var(--webdev-primary))',
+				'webdev-secondary': 'hsl(var(--webdev-secondary))',
+				'webdev-background': 'hsl(var(--webdev-background))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
