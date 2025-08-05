@@ -5,14 +5,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import { Loader2, BookOpen } from 'lucide-react';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [userType, setUserType] = useState('student');
   const [isLoading, setIsLoading] = useState(false);
   const { user, signIn, signUp } = useAuth();
   const navigate = useNavigate();
@@ -41,7 +45,39 @@ export default function Auth() {
     e.preventDefault();
     setIsLoading(true);
     
-    const { error } = await signUp(email, password, displayName);
+    try {
+      const { error } = await signUp(email, password, displayName);
+      
+      if (error) {
+        setIsLoading(false);
+        return;
+      }
+      
+      // Update user profile with user type
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ user_type: userType })
+          .eq('id', user.id);
+          
+        if (profileError) {
+          toast({
+            title: "Warning",
+            description: "Account created but failed to save user type preference.",
+            variant: "destructive",
+          });
+        }
+      }
+      
+      navigate('/');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create account. Please try again.",
+        variant: "destructive",
+      });
+    }
     
     setIsLoading(false);
   };
@@ -162,6 +198,20 @@ export default function Auth() {
                       required
                       minLength={6}
                     />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="userType">I am a</Label>
+                    <Select value={userType} onValueChange={setUserType}>
+                      <SelectTrigger className="border-primary/20 focus:border-primary">
+                        <SelectValue placeholder="Select your role" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card border-primary/20">
+                        <SelectItem value="student">Student</SelectItem>
+                        <SelectItem value="teacher">Teacher</SelectItem>
+                        <SelectItem value="viewer">Viewer</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <Button 

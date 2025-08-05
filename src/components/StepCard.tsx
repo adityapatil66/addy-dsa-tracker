@@ -9,9 +9,10 @@ import { LectureCard } from "./LectureCard";
 interface StepCardProps {
   step: Step;
   onToggleProblem: (stepId: string, lectureId: string, problemId: string) => void;
+  isGuest?: boolean;
 }
 
-export const StepCard = ({ step, onToggleProblem }: StepCardProps) => {
+export const StepCard = ({ step, onToggleProblem, isGuest = false }: StepCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const percentage = step.totalProblems > 0 ? Math.round((step.completedProblems / step.totalProblems) * 100) : 0;
 
@@ -81,10 +82,11 @@ export const StepCard = ({ step, onToggleProblem }: StepCardProps) => {
                     key={lecture.id}
                     lecture={lecture}
                     stepId={step.id}
-                    onToggleProblem={onToggleProblem}
-                  />
-                ))}
-              </div>
+                     onToggleProblem={onToggleProblem}
+                     isGuest={isGuest}
+                   />
+                 ))}
+               </div>
             </div>
           </div>
         )}

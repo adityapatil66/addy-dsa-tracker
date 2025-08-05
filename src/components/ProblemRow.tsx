@@ -7,9 +7,10 @@ import { Problem } from "@/data/dsaCourse";
 interface ProblemRowProps {
   problem: Problem;
   onToggle: () => void;
+  isGuest?: boolean;
 }
 
-export const ProblemRow = ({ problem, onToggle }: ProblemRowProps) => {
+export const ProblemRow = ({ problem, onToggle, isGuest = false }: ProblemRowProps) => {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'Easy':
@@ -32,8 +33,8 @@ export const ProblemRow = ({ problem, onToggle }: ProblemRowProps) => {
       <div className="flex items-center gap-3 flex-1">
         <Checkbox
           checked={problem.status === 'completed'}
-          onCheckedChange={onToggle}
-          className="data-[state=checked]:bg-success data-[state=checked]:border-success"
+          onCheckedChange={isGuest ? () => alert("Please sign up to save your progress!") : onToggle}
+          className={`data-[state=checked]:bg-success data-[state=checked]:border-success ${isGuest ? "opacity-50" : ""}`}
         />
         <div className="flex-1">
           <h5 className={`font-medium transition-all ${

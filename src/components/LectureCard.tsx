@@ -10,9 +10,10 @@ interface LectureCardProps {
   lecture: Lecture;
   stepId: string;
   onToggleProblem: (stepId: string, lectureId: string, problemId: string) => void;
+  isGuest?: boolean;
 }
 
-export const LectureCard = ({ lecture, stepId, onToggleProblem }: LectureCardProps) => {
+export const LectureCard = ({ lecture, stepId, onToggleProblem, isGuest = false }: LectureCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const percentage = lecture.totalProblems > 0 ? Math.round((lecture.completedProblems / lecture.totalProblems) * 100) : 0;
 
@@ -54,6 +55,7 @@ export const LectureCard = ({ lecture, stepId, onToggleProblem }: LectureCardPro
                   key={problem.id}
                   problem={problem}
                   onToggle={() => onToggleProblem(stepId, lecture.id, problem.id)}
+                  isGuest={isGuest}
                 />
               ))}
             </div>
