@@ -97,9 +97,26 @@ export const ProblemRow = ({ problem, onToggle, isGuest = false }: ProblemRowPro
         )}
         
         {problem.isFreeProblem && (
-          <Badge variant="outline" className="text-xs border-success text-success">
-            Free
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs border-success text-success">
+              Free
+            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-6 px-2 text-xs border-primary/30 text-primary hover:bg-primary/10"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (problem.practiceLink) {
+                  window.open(problem.practiceLink, '_blank');
+                } else {
+                  console.log('Practice problem:', problem.title);
+                }
+              }}
+            >
+              Problem
+            </Button>
+          </div>
         )}
       </div>
     </div>
