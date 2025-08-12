@@ -1,16 +1,17 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Youtube, BookOpen } from "lucide-react";
+import { ExternalLink, Youtube, BookOpen, Code } from "lucide-react";
 import { Problem } from "@/data/dsaCourse";
 
 interface ProblemRowProps {
   problem: Problem;
   onToggle: () => void;
+  onOpenEditor?: () => void;
   isGuest?: boolean;
 }
 
-export const ProblemRow = ({ problem, onToggle, isGuest = false }: ProblemRowProps) => {
+export const ProblemRow = ({ problem, onToggle, onOpenEditor, isGuest = false }: ProblemRowProps) => {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'Easy':
@@ -116,7 +117,34 @@ export const ProblemRow = ({ problem, onToggle, isGuest = false }: ProblemRowPro
             >
               Problem
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-6 px-2 text-xs border-blue-500/30 text-blue-600 hover:bg-blue-500/10"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenEditor?.();
+              }}
+            >
+              <Code className="w-3 h-3 mr-1" />
+              Code
+            </Button>
           </div>
+        )}
+        
+        {/* Always show Code button for coding problems */}
+        {!problem.isFreeProblem && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 hover:bg-accent text-blue-600"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenEditor?.();
+            }}
+          >
+            <Code className="h-4 w-4" />
+          </Button>
         )}
       </div>
     </div>

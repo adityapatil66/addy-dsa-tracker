@@ -3,15 +3,19 @@ import { ProgressCard } from "@/components/ProgressCard";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { AdminControls } from "@/components/AdminControls";
 import { StepCard } from "@/components/StepCard";
+import { ProblemEditor } from "@/components/ProblemEditor";
+import { ProblemRow } from "@/components/ProblemRow";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Home, User, LogOut, BookOpen } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ArrowLeft, Home, User, LogOut, BookOpen, ChevronDown, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useDSAProgress } from "@/hooks/useDSAProgress";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Problem as DSAProblem } from "@/data/dsaCourse";
 
 interface Chapter {
   id: string;
@@ -64,6 +68,9 @@ const ChapterDetail = () => {
   
   const [isGuest, setIsGuest] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
+  const [selectedProblem, setSelectedProblem] = useState<DSAProblem | null>(null);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
   // Find the static chapter
   const chapter = course.find(step => step.id === chapterId);
@@ -88,6 +95,20 @@ const ChapterDetail = () => {
       return;
     }
     toggleProblemStatus(stepId, lectureId, problemId);
+  };
+
+  const handleOpenEditor = (problem: DSAProblem) => {
+    setSelectedProblem(problem);
+    setIsEditorOpen(true);
+  };
+
+  const handleCloseEditor = () => {
+    setIsEditorOpen(false);
+    setSelectedProblem(null);
+  };
+
+  const toggleSection = (lectureId: string) => {
+    setOpenSections(prev => ({ ...prev, [lectureId]: !prev[lectureId] }));
   };
 
   const totalProgress = getTotalProgress();
@@ -200,8 +221,8 @@ const ChapterDetail = () => {
             variant="total"
           />
           <ProgressCard
-            title="Lectures"
-            completed={chapter.lectures.length}
+            title="Sections"
+            completed={0}
             total={chapter.lectures.length}
             variant="easy"
           />
@@ -215,21 +236,13 @@ const ChapterDetail = () => {
         </div>
 
         {/* Chapter Header */}
-        <div className="bg-gradient-hero rounded-xl p-8 mb-8 text-center">
-          <h2 className="text-3xl font-bold text-primary-foreground mb-4">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-8 mb-8 text-center">
+          <h2 className="text-3xl font-bold text-white mb-4">
             {chapter.title}
           </h2>
-          <p className="text-primary-foreground/90 text-lg max-w-2xl mx-auto">
+          <p className="text-white/90 text-lg max-w-2xl mx-auto">
             {chapter.description}
           </p>
-          <div className="flex items-center justify-center gap-4 mt-6">
-            <Badge variant="secondary" className="bg-primary/20 text-primary">
-              {chapter.lectures.length} Lectures
-            </Badge>
-            <Badge variant="secondary" className="bg-accent/20 text-accent">
-              {chapter.totalProblems} Problems
-            </Badge>
-          </div>
         </div>
 
         {/* Admin Controls */}
@@ -242,21 +255,62 @@ const ChapterDetail = () => {
           </div>
         )}
 
-        {/* Content */}
-        <div className="space-y-8">
-          <h3 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-primary" />
-            Chapter Content
-          </h3>
+        {/* Sections */}
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-foreground mb-6">Sections</h3>
           
-          <div className="space-y-6">
-            <StepCard
-              step={chapter}
-              onToggleProblem={handleToggleProblem}
-              isGuest={isGuest}
-            />
-          </div>
+          {chapter.lectures.map((lecture, index) => {
+            const isOpen = openSections[lecture.id];
+            const completedProblems = lecture.problems.filter(p => p.status === 'completed').length;
+            
+            return (
+              <div key={lecture.id} className="border border-border rounded-lg bg-card">
+                <Collapsible open={isOpen} onOpenChange={() => toggleSection(lecture.id)}>
+                  <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-muted/50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                        {index + 1}
+                      </div>
+                      <h4 className="font-medium text-foreground text-left">{lecture.title}</h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">
+                        {completedProblems} / {lecture.problems.length}
+                      </span>
+                      {isOpen ? (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent>
+                    <div className="px-4 pb-4 space-y-2">
+                      {lecture.problems.map((problem) => (
+                        <div key={problem.id} className="ml-11">
+                          <ProblemRow
+                            problem={problem}
+                            onToggle={() => handleToggleProblem(chapter.id, lecture.id, problem.id)}
+                            onOpenEditor={() => handleOpenEditor(problem)}
+                            isGuest={isGuest}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
+            );
+          })}
         </div>
+
+        {/* Problem Editor Modal */}
+        <ProblemEditor
+          isOpen={isEditorOpen}
+          onClose={handleCloseEditor}
+          problem={selectedProblem}
+        />
 
         {/* Navigation Footer */}
         <div className="flex justify-center items-center mt-12 p-6 bg-card rounded-xl border border-border">
