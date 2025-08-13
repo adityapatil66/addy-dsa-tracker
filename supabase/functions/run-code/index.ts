@@ -13,9 +13,12 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Received request:', req.method);
     const { languageId, sourceCode, stdin } = await req.json();
+    console.log('Request body parsed:', { languageId, hasSourceCode: !!sourceCode, hasStdin: !!stdin });
 
     // Submit to Judge0 API
+    console.log('Submitting to Judge0 API...');
     const submissionResponse = await fetch('https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=true&wait=false', {
       method: 'POST',
       headers: {
@@ -30,17 +33,22 @@ serve(async (req) => {
       }),
     });
 
+    console.log('Judge0 submission response status:', submissionResponse.status);
     const submission = await submissionResponse.json();
+    console.log('Judge0 submission response:', submission);
     
     if (!submission.token) {
-      throw new Error('Failed to submit code for execution');
+      console.error('No token received from Judge0:', submission);
+      throw new Error('Failed to submit code for execution: ' + JSON.stringify(submission));
     }
 
     // Poll for result
+    console.log('Starting to poll for result with token:', submission.token);
     let attempts = 0;
     const maxAttempts = 30;
     
     while (attempts < maxAttempts) {
+      console.log(`Polling attempt ${attempts + 1}/${maxAttempts}`);
       const resultResponse = await fetch(`https://judge0-ce.p.rapidapi.com/submissions/${submission.token}?base64_encoded=true`, {
         method: 'GET',
         headers: {
@@ -49,16 +57,20 @@ serve(async (req) => {
         }
       });
 
+      console.log('Judge0 result response status:', resultResponse.status);
       const result = await resultResponse.json();
+      console.log('Judge0 result:', result);
       
       if (result.status.id <= 2) {
         // Still processing (In Queue = 1, Processing = 2)
+        console.log('Still processing, waiting...');
         await new Promise(resolve => setTimeout(resolve, 1000));
         attempts++;
         continue;
       }
 
       // Process completed
+      console.log('Processing completed with status:', result.status);
       let output = '';
       
       if (result.stdout) {
@@ -71,6 +83,7 @@ serve(async (req) => {
         output = 'No output';
       }
 
+      console.log('Final output:', output);
       return new Response(
         JSON.stringify({ 
           output,
@@ -84,6 +97,7 @@ serve(async (req) => {
       );
     }
 
+    console.log('Polling timeout reached');
     return new Response(
       JSON.stringify({ 
         output: 'Execution timeout - please try again',
