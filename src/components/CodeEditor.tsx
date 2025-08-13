@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Play, Square, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CodeEditorProps {
   problem?: {
@@ -67,25 +68,19 @@ export const CodeEditor = ({ problem, onClose }: CodeEditorProps) => {
     try {
       const languageConfig = LANGUAGE_CONFIGS[language];
       
-      // Use our edge function instead of direct Judge0 API
-      const response = await fetch('/api/run-code', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Use Supabase edge function
+      const { data, error } = await supabase.functions.invoke('run-code', {
+        body: {
           languageId: languageConfig.id,
           sourceCode: btoa(code), // Base64 encode
           stdin: btoa(input), // Base64 encode
-        })
+        }
       });
 
-      const result = await response.json();
-      
-      if (response.ok) {
-        setOutput(result.output);
-      } else {
-        setOutput(`Error: ${result.output || 'Failed to execute code'}`);
+      if (error) {
+        setOutput(`Error: ${error.message}`);
+      } else if (data) {
+        setOutput(data.output);
       }
     } catch (error) {
       console.error('Code execution error:', error);
