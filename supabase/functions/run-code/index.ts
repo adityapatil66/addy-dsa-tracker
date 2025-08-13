@@ -20,7 +20,7 @@ serve(async (req) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-RapidAPI-Key': 'your-rapidapi-key-here', // Replace with actual key
+        'X-RapidAPI-Key': 'fed3a3946fmshe1f89c5a670b1b0p137ccdjsn3d9e937d727f',
         'X-RapidAPI-Host': 'judge0-ce.p.rapidapi.com'
       },
       body: JSON.stringify({
@@ -44,7 +44,7 @@ serve(async (req) => {
       const resultResponse = await fetch(`https://judge0-ce.p.rapidapi.com/submissions/${submission.token}?base64_encoded=true`, {
         method: 'GET',
         headers: {
-          'X-RapidAPI-Key': 'your-rapidapi-key-here', // Replace with actual key
+          'X-RapidAPI-Key': 'fed3a3946fmshe1f89c5a670b1b0p137ccdjsn3d9e937d727f',
           'X-RapidAPI-Host': 'judge0-ce.p.rapidapi.com'
         }
       });
