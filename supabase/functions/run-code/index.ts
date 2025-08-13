@@ -14,10 +14,21 @@ serve(async (req) => {
 
   try {
     console.log('Received request:', req.method);
-    const { languageId, sourceCode, stdin } = await req.json();
-    console.log('Request body parsed:', { languageId, hasSourceCode: !!sourceCode, hasStdin: !!stdin });
+    const requestBody = await req.json();
+    console.log('Request body:', requestBody);
+    
+    const { languageId, sourceCode, stdin } = requestBody;
 
-    // Submit to Judge0 API
+    if (!languageId || !sourceCode) {
+      return new Response(
+        JSON.stringify({ output: 'Error: Missing languageId or sourceCode' }), 
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
     console.log('Submitting to Judge0 API...');
     const submissionResponse = await fetch('https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=true&wait=false', {
       method: 'POST',
@@ -34,12 +45,37 @@ serve(async (req) => {
     });
 
     console.log('Judge0 submission response status:', submissionResponse.status);
+    
+    if (!submissionResponse.ok) {
+      const errorText = await submissionResponse.text();
+      console.error('Judge0 submission failed:', errorText);
+      return new Response(
+        JSON.stringify({ 
+          output: `Judge0 API Error: ${submissionResponse.status} - ${errorText}`,
+          status: 'Error'
+        }), 
+        {
+          status: 200, // Return 200 but with error in output
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
     const submission = await submissionResponse.json();
     console.log('Judge0 submission response:', submission);
     
     if (!submission.token) {
       console.error('No token received from Judge0:', submission);
-      throw new Error('Failed to submit code for execution: ' + JSON.stringify(submission));
+      return new Response(
+        JSON.stringify({ 
+          output: `Failed to submit code: ${JSON.stringify(submission)}`,
+          status: 'Error'
+        }), 
+        {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // Poll for result
@@ -49,6 +85,9 @@ serve(async (req) => {
     
     while (attempts < maxAttempts) {
       console.log(`Polling attempt ${attempts + 1}/${maxAttempts}`);
+      
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+      
       const resultResponse = await fetch(`https://judge0-ce.p.rapidapi.com/submissions/${submission.token}?base64_encoded=true`, {
         method: 'GET',
         headers: {
@@ -58,13 +97,28 @@ serve(async (req) => {
       });
 
       console.log('Judge0 result response status:', resultResponse.status);
+      
+      if (!resultResponse.ok) {
+        const errorText = await resultResponse.text();
+        console.error('Judge0 result fetch failed:', errorText);
+        return new Response(
+          JSON.stringify({ 
+            output: `Failed to get result: ${resultResponse.status} - ${errorText}`,
+            status: 'Error'
+          }), 
+          {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
       const result = await resultResponse.json();
       console.log('Judge0 result:', result);
       
-      if (result.status.id <= 2) {
+      if (result.status && result.status.id <= 2) {
         // Still processing (In Queue = 1, Processing = 2)
         console.log('Still processing, waiting...');
-        await new Promise(resolve => setTimeout(resolve, 1000));
         attempts++;
         continue;
       }
@@ -76,22 +130,25 @@ serve(async (req) => {
       if (result.stdout) {
         output = atob(result.stdout);
       } else if (result.stderr) {
-        output = `Error: ${atob(result.stderr)}`;
+        output = `Runtime Error: ${atob(result.stderr)}`;
       } else if (result.compile_output) {
         output = `Compilation Error: ${atob(result.compile_output)}`;
+      } else if (result.message) {
+        output = `Error: ${result.message}`;
       } else {
-        output = 'No output';
+        output = 'No output generated';
       }
 
       console.log('Final output:', output);
       return new Response(
         JSON.stringify({ 
           output,
-          status: result.status.description,
-          time: result.time,
-          memory: result.memory
+          status: result.status?.description || 'Completed',
+          time: result.time || null,
+          memory: result.memory || null
         }), 
         {
+          status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
@@ -100,10 +157,11 @@ serve(async (req) => {
     console.log('Polling timeout reached');
     return new Response(
       JSON.stringify({ 
-        output: 'Execution timeout - please try again',
+        output: 'Execution timeout - the code took too long to execute. Please check for infinite loops.',
         status: 'Timeout'
       }), 
       {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );

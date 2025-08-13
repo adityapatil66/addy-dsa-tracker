@@ -78,16 +78,27 @@ export const CodeEditor = ({ problem, onClose }: CodeEditorProps) => {
       });
 
       if (error) {
-        setOutput(`Error: ${error.message}`);
+        console.error('Supabase function error:', error);
+        setOutput(`Edge Function Error: ${error.message}`);
+        toast({
+          title: "Execution Error",
+          description: error.message,
+          variant: "destructive"
+        });
       } else if (data) {
-        setOutput(data.output);
+        setOutput(data.output || 'No output received');
+        if (data.status && data.status !== 'Accepted') {
+          console.log('Execution status:', data.status);
+        }
+      } else {
+        setOutput('No response received from server');
       }
     } catch (error) {
       console.error('Code execution error:', error);
-      setOutput('Error executing code. Please try again.');
+      setOutput(`Client Error: ${error.message}`);
       toast({
-        title: "Execution Error",
-        description: "Failed to execute code. Please check your internet connection.",
+        title: "Execution Error",  
+        description: "Failed to execute code. Please try again.",
         variant: "destructive"
       });
     } finally {
