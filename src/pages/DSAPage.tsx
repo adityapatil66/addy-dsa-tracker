@@ -1,20 +1,17 @@
 import { useDSAProgress } from "@/hooks/useDSAProgress";
 import { ProgressCard } from "@/components/ProgressCard";
 import { ChapterCard } from "@/components/ChapterCard";
-import { GuestPrompt } from "@/components/GuestPrompt";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Target, User, RotateCcw, LogOut } from "lucide-react";
+import { Target, User, RotateCcw, LogOut, BookOpen } from "lucide-react";
 
-const Index = () => {
+const DSAPage = () => {
   const { user, loading, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [showGuestPrompt, setShowGuestPrompt] = useState(!user && !loading);
-  const [isGuestMode, setIsGuestMode] = useState(false);
   
   const { 
     course, 
@@ -35,46 +32,50 @@ const Index = () => {
     });
   };
 
-  const handleContinueAsGuest = () => {
-    setIsGuestMode(true);
-    setShowGuestPrompt(false);
-  };
-
   const handleSignOut = async () => {
     await signOut();
-    navigate('/auth');
+    navigate('/');
   };
 
-  // Show guest prompt if user is not logged in and hasn't chosen guest mode
-  if (!user && !loading && !isGuestMode) {
-    return <GuestPrompt onContinueAsGuest={handleContinueAsGuest} />;
+  // Redirect to landing page if not authenticated
+  useEffect(() => {
+    if (!user && !loading) {
+      navigate('/');
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect via useEffect
   }
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header matching the reference */}
+      {/* Header */}
       <header className="bg-background border-b border-border">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <Target className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">DSA Learning Kit</h1>
-                <p className="text-sm text-muted-foreground">Master Data Structures & Algorithms</p>
-              </div>
+              <Button variant="ghost" onClick={() => navigate('/')}>
+                <BookOpen className="h-6 w-6 text-primary mr-2" />
+                <span className="text-xl font-bold text-foreground">DSA Master</span>
+              </Button>
             </div>
             
             <div className="flex items-center gap-3">
-              {user && (
-                <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full">
-                  <User className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-primary">
-                    {user.email} {isAdmin && '(Admin)'}
-                  </span>
-                </div>
-              )}
+              <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full">
+                <User className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-primary">
+                  {user.email} {isAdmin && '(Admin)'}
+                </span>
+              </div>
               <ThemeToggle />
               <Button
                 onClick={handleResetProgress}
@@ -85,17 +86,15 @@ const Index = () => {
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Reset Progress
               </Button>
-              {user && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSignOut}
-                  className="border-destructive/20 text-destructive hover:bg-destructive/10"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSignOut}
+                className="border-destructive/20 text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
             </div>
           </div>
         </div>
@@ -139,14 +138,6 @@ const Index = () => {
           </p>
         </div>
 
-        {/* Guest prompt */}
-        {isGuestMode && (
-          <div className="mb-8 p-4 bg-primary/10 border border-primary/20 rounded-lg">
-            <p className="text-center text-primary">
-              You're browsing as a guest. <Button variant="link" className="p-0 h-auto text-primary" onClick={() => navigate('/auth')}>Sign up</Button> to save your progress!
-            </p>
-          </div>
-        )}
 
         {/* Chapter Cards - matching reference design */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -164,4 +155,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default DSAPage;

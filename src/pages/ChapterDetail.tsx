@@ -75,25 +75,16 @@ const ChapterDetail = () => {
   // Find the static chapter
   const chapter = course.find(step => step.id === chapterId);
 
-  // Check if user is guest or logged in
+  // Redirect to landing page if not authenticated
   useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        setIsGuest(true);
-      }
+    if (!user && !loading) {
+      navigate('/');
+    } else if (!loading) {
       setPageLoading(false);
     }
-  }, [user, loading, chapterId]);
+  }, [user, loading, navigate]);
 
   const handleToggleProblem = (stepId: string, lectureId: string, problemId: string) => {
-    if (isGuest) {
-      toast({
-        title: "Sign up required",
-        description: "Please sign up to save your progress",
-      });
-      navigate('/auth');
-      return;
-    }
     toggleProblemStatus(stepId, lectureId, problemId);
   };
 
@@ -125,14 +116,18 @@ const ChapterDetail = () => {
     );
   }
 
+  if (!user) {
+    return null; // Will redirect via useEffect
+  }
+
   if (!chapter) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground mb-4">Chapter Not Found</h1>
-          <Button onClick={() => navigate("/")}>
+          <Button onClick={() => navigate("/dsa")}>
             <Home className="w-4 h-4 mr-2" />
-            Back to Home
+            Back to DSA
           </Button>
         </div>
       </div>
@@ -141,7 +136,7 @@ const ChapterDetail = () => {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/auth');
+    navigate('/');
   };
 
   return (
@@ -154,11 +149,11 @@ const ChapterDetail = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/dsa")}
                 className="border-primary/20 hover:bg-primary/10"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
+                Back to DSA
               </Button>
               
               <div className="flex items-center gap-3">
@@ -183,7 +178,7 @@ const ChapterDetail = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/dsa")}
                 className="border-primary/20 hover:bg-primary/10"
               >
                 <Home className="w-4 h-4 mr-2" />
@@ -204,13 +199,6 @@ const ChapterDetail = () => {
       </header>
 
       <div className="container mx-auto px-6 py-8">
-        {isGuest && (
-          <div className="mb-8 p-4 bg-primary/10 border border-primary/20 rounded-lg">
-            <p className="text-center text-primary">
-              You're browsing as a guest. <Button variant="link" className="p-0 h-auto text-primary" onClick={() => navigate('/auth')}>Sign up</Button> to save your progress!
-            </p>
-          </div>
-        )}
 
         {/* Chapter Progress */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -289,12 +277,12 @@ const ChapterDetail = () => {
                     <div className="px-4 pb-4 space-y-2">
                       {lecture.problems.map((problem) => (
                         <div key={problem.id} className="ml-11">
-                          <ProblemRow
-                            problem={problem}
-                            onToggle={() => handleToggleProblem(chapter.id, lecture.id, problem.id)}
-                            onOpenEditor={() => handleOpenEditor(problem)}
-                            isGuest={isGuest}
-                          />
+                           <ProblemRow
+                             problem={problem}
+                             onToggle={() => handleToggleProblem(chapter.id, lecture.id, problem.id)}
+                             onOpenEditor={() => handleOpenEditor(problem)}
+                             isGuest={false}
+                           />
                         </div>
                       ))}
                     </div>
@@ -315,7 +303,7 @@ const ChapterDetail = () => {
         {/* Navigation Footer */}
         <div className="flex justify-center items-center mt-12 p-6 bg-card rounded-xl border border-border">
           <Button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/dsa")}
             className="bg-gradient-primary text-primary-foreground hover:opacity-90"
           >
             <Home className="w-4 h-4 mr-2" />
